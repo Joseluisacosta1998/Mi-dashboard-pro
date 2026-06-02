@@ -1,0 +1,1277 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>TradingDash</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:      #07080f;
+  --bg2:     #0b0e1a;
+  --bg3:     #0f1320;
+  --card:    #111624;
+  --card2:   #151b28;
+  --border:  #1d2640;
+  --border2: #263452;
+  --green:   #00e5a0;
+  --green2:  #00c483;
+  --green3:  rgba(0,229,160,.13);
+  --red:     #ff4060;
+  --red2:    #cc2244;
+  --red3:    rgba(255,64,96,.13);
+  --blue:    #3d8eff;
+  --blue2:   #2266cc;
+  --blue3:   rgba(61,142,255,.13);
+  --purple:  #9b6dff;
+  --purple3: rgba(155,109,255,.13);
+  --gold:    #f5c542;
+  --gold3:   rgba(245,197,66,.13);
+  --cyan:    #00d4ff;
+  --cyan3:   rgba(0,212,255,.13);
+  --text:    #dce8f5;
+  --text2:   #6a8cb0;
+  --text3:   #334d6e;
+  --mono:    'Space Mono', monospace;
+  --sans:    'Outfit', sans-serif;
+  --r:       10px;
+  --r2:      14px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14px}
+
+/* ── LAYOUT ── */
+.app{display:flex;height:100vh}
+.sidebar{width:64px;background:var(--bg2);border-right:1px solid var(--border);
+  display:flex;flex-direction:column;align-items:center;padding:12px 0;gap:4px;flex-shrink:0;z-index:10}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.topbar{background:var(--bg2);border-bottom:1px solid var(--border);
+  padding:0 20px;height:52px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.content{flex:1;overflow-y:auto;padding:20px}
+
+/* ── SIDEBAR ── */
+.logo-mark{width:36px;height:36px;background:linear-gradient(135deg,var(--green),var(--cyan));
+  border-radius:10px;display:flex;align-items:center;justify-content:center;
+  font-weight:800;font-size:16px;color:#000;margin-bottom:8px;flex-shrink:0}
+.s-btn{width:44px;height:44px;border-radius:10px;border:none;background:transparent;
+  color:var(--text3);cursor:pointer;display:flex;align-items:center;justify-content:center;
+  transition:all .2s;position:relative}
+.s-btn svg{width:20px;height:20px}
+.s-btn:hover{background:var(--bg3);color:var(--text2)}
+.s-btn.active{background:var(--blue3);color:var(--blue)}
+.s-btn .tip{position:absolute;left:54px;background:var(--card2);border:1px solid var(--border2);
+  border-radius:6px;padding:4px 10px;font-size:11px;font-weight:600;white-space:nowrap;
+  opacity:0;pointer-events:none;transition:opacity .15s;z-index:99}
+.s-btn:hover .tip{opacity:1}
+.s-sep{width:32px;height:1px;background:var(--border);margin:4px 0}
+
+/* ── TOPBAR ── */
+.tb-left{display:flex;align-items:center;gap:10px}
+.tb-title{font-size:15px;font-weight:700}
+.tb-badge{padding:3px 9px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:.5px}
+.tb-right{display:flex;align-items:center;gap:8px}
+.tb-clock{font-family:var(--mono);font-size:12px;color:var(--text2)}
+.live-dot{width:8px;height:8px;border-radius:50%;background:var(--green);
+  box-shadow:0 0 6px var(--green);animation:blink 2s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.icon-btn{width:32px;height:32px;border-radius:8px;border:1px solid var(--border);
+  background:var(--card);color:var(--text2);cursor:pointer;display:flex;
+  align-items:center;justify-content:center;transition:all .2s}
+.icon-btn:hover{color:var(--text);border-color:var(--border2)}
+.icon-btn svg{width:15px;height:15px}
+
+/* ── PAGES ── */
+.page{display:none}
+.page.on{display:block}
+
+/* ── CARDS ── */
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px}
+.grid-2{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:16px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:16px 18px}
+.card:hover{border-color:var(--border2)}
+.c-label{font-size:9px;font-weight:700;letter-spacing:1.8px;color:var(--text3);
+  text-transform:uppercase;margin-bottom:10px}
+.c-val{font-family:var(--mono);font-size:20px;font-weight:700;margin-bottom:3px}
+.c-sub{font-size:11px;color:var(--text2)}
+.c-bar{height:3px;border-radius:2px;margin-top:12px}
+.g{color:var(--green)}.r{color:var(--red)}.b{color:var(--blue)}
+.p{color:var(--purple)}.go{color:var(--gold)}.cy{color:var(--cyan)}
+
+/* Exchange cards */
+.ex-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px}
+.ex-card{background:var(--card);border-radius:var(--r2);padding:16px 18px;
+  border-top:3px solid;position:relative;overflow:hidden}
+.ex-card::after{content:'';position:absolute;inset:0;opacity:.03;
+  background:linear-gradient(135deg,currentColor,transparent)}
+.ex-card.hl{border-color:var(--blue);color:var(--blue)}
+.ex-card.lt{border-color:var(--green);color:var(--green)}
+.ex-card.at{border-color:var(--gold);color:var(--gold)}
+.ex-name{font-size:9px;font-weight:800;letter-spacing:2px;margin-bottom:10px;opacity:.8}
+.ex-val{font-family:var(--mono);font-size:22px;font-weight:700;margin-bottom:2px}
+.ex-sub{font-size:11px;color:var(--text2)}
+.ex-status{position:absolute;top:12px;right:14px;
+  font-size:9px;font-weight:700;letter-spacing:1px;
+  padding:2px 7px;border-radius:10px;border:1px solid currentColor;opacity:.7}
+
+/* ── CHART AREA ── */
+.chart-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r2);
+  padding:18px;margin-bottom:16px}
+.chart-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.chart-ttl{font-size:11px;font-weight:700;letter-spacing:1px;color:var(--text2)}
+.tfs{display:flex;gap:4px}
+.tf{padding:3px 9px;border-radius:6px;font-size:10px;font-weight:700;
+  background:transparent;border:1px solid var(--border);color:var(--text3);cursor:pointer;transition:all .2s}
+.tf.on{background:var(--blue3);border-color:var(--blue2);color:var(--blue)}
+.svg-chart{width:100%;overflow:visible}
+
+/* ── TABLE ── */
+.tbl-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r2);
+  overflow:hidden;margin-bottom:16px}
+.tbl-hdr{padding:14px 18px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between}
+.tbl-ttl{font-size:11px;font-weight:700;letter-spacing:1px;color:var(--text2)}
+table{width:100%;border-collapse:collapse}
+thead th{padding:9px 18px;text-align:left;font-size:9px;font-weight:700;
+  letter-spacing:1.5px;color:var(--text3);text-transform:uppercase;
+  background:var(--bg2);border-bottom:1px solid var(--border)}
+tbody td{padding:11px 18px;font-size:12px;font-family:var(--mono);
+  border-bottom:1px solid rgba(29,38,64,.4)}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover td{background:rgba(255,255,255,.015)}
+.cn{font-family:var(--sans);font-weight:700;color:var(--text);font-size:13px}
+.badge{display:inline-flex;padding:2px 7px;border-radius:4px;font-size:9px;font-weight:700;letter-spacing:.5px}
+.bl{background:var(--green3);color:var(--green)}
+.bs{background:var(--red3);color:var(--red)}
+
+/* ── CALENDAR ── */
+.cal-wrap{max-width:800px}
+.cal-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.cal-nav{display:flex;align-items:center;gap:14px}
+.cal-arr{width:42px;height:42px;border-radius:10px;background:var(--card);border:1px solid var(--border);
+  color:var(--text2);cursor:pointer;display:flex;align-items:center;justify-content:center;
+  font-size:18px;transition:all .2s}
+.cal-arr:hover{border-color:var(--border2);color:var(--text)}
+.cal-mo{font-size:20px;font-weight:800}
+.cal-badge{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:600;color:var(--text2)}
+.cal-dnames{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-bottom:6px}
+.cal-dn{text-align:center;font-size:10px;font-weight:700;letter-spacing:1px;color:var(--text3);padding:6px 0}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.cal-cell{aspect-ratio:1;border-radius:10px;background:var(--card2);border:1px solid var(--border);
+  padding:8px;display:flex;flex-direction:column;cursor:pointer;transition:all .2s;min-height:70px}
+.cal-cell.emp{background:transparent;border-color:transparent;cursor:default}
+.cal-cell:not(.emp):hover{border-color:var(--border2);transform:translateY(-1px)}
+.cal-cell.today{border-color:var(--blue)!important}
+.cal-cell.gh{background:rgba(0,196,131,.18);border-color:rgba(0,229,160,.35)}
+.cal-cell.gl{background:rgba(0,196,131,.08);border-color:rgba(0,229,160,.18)}
+.cal-cell.lh{background:rgba(204,34,68,.28);border-color:rgba(255,64,96,.45)}
+.cal-cell.ll{background:rgba(204,34,68,.1);border-color:rgba(255,64,96,.2)}
+.cal-d{font-size:13px;font-weight:700;color:var(--text2);margin-bottom:5px}
+.cal-p{font-family:var(--mono);font-size:12px;font-weight:700;line-height:1.2;margin-bottom:3px}
+.cal-t{font-size:9px;color:var(--text3);font-family:var(--mono)}
+.cal-legend{display:flex;gap:18px;margin-top:16px}
+.leg{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text2)}
+.leg-sq{width:11px;height:11px;border-radius:3px}
+
+/* ── PNL BARS ── */
+.bar-wrap{height:160px;display:flex;align-items:flex-end;gap:3px;padding-top:10px}
+.bar{flex:1;border-radius:3px 3px 0 0;min-width:0;cursor:pointer;transition:filter .2s;position:relative}
+.bar:hover{filter:brightness(1.4)}
+.bar.pos{background:var(--green2)}
+.bar.neg{background:var(--red2)}
+
+/* ── CONFIG PAGE ── */
+.cfg-section{background:var(--card);border:1px solid var(--border);border-radius:var(--r2);
+  padding:20px;margin-bottom:14px}
+.cfg-ex-badge{display:inline-flex;padding:3px 10px;border-radius:6px;font-size:10px;font-weight:800;
+  letter-spacing:1px;margin-bottom:14px;border:1px solid}
+.cfg-ex-badge.hl{background:var(--blue3);color:var(--blue);border-color:var(--blue2)}
+.cfg-ex-badge.lt{background:var(--green3);color:var(--green);border-color:var(--green2)}
+.cfg-ex-badge.at{background:var(--gold3);color:var(--gold);border-color:#b8930a}
+.cfg-info{background:var(--bg3);border-radius:8px;padding:12px 14px;margin-bottom:14px;
+  font-size:12px;color:var(--cyan);line-height:1.6;border-left:3px solid var(--cyan)}
+.cfg-warn{background:rgba(245,197,66,.08);border-radius:8px;padding:12px 14px;margin-bottom:14px;
+  font-size:12px;color:var(--gold);line-height:1.6;border-left:3px solid var(--gold)}
+.cfg-label{font-size:9px;font-weight:700;letter-spacing:1.5px;color:var(--text3);
+  text-transform:uppercase;margin-bottom:6px}
+.cfg-input{width:100%;background:var(--bg2);border:1px solid var(--border);
+  color:var(--text);font-family:var(--mono);font-size:12px;padding:10px 12px;
+  border-radius:8px;outline:none;transition:border-color .2s;margin-bottom:12px}
+.cfg-input:focus{border-color:var(--blue)}
+.cfg-input::placeholder{color:var(--text3)}
+.cfg-btn{width:100%;padding:12px;border:none;border-radius:10px;font-family:var(--sans);
+  font-size:13px;font-weight:700;cursor:pointer;transition:all .2s;letter-spacing:.3px}
+.cfg-btn:hover{transform:translateY(-1px);filter:brightness(1.1)}
+.cfg-btn.hl{background:linear-gradient(135deg,var(--blue),var(--blue2));color:#fff}
+.cfg-btn.lt{background:linear-gradient(135deg,var(--green2),#007a55);color:#000}
+.cfg-btn.at{background:linear-gradient(135deg,var(--gold),#c49a00);color:#000}
+
+/* ── LOADING / TOAST ── */
+.overlay{position:fixed;inset:0;background:rgba(7,8,15,.85);backdrop-filter:blur(5px);
+  display:flex;align-items:center;justify-content:center;z-index:200;
+  opacity:0;pointer-events:none;transition:opacity .3s}
+.overlay.on{opacity:1;pointer-events:all}
+.overlay-box{background:var(--card);border:1px solid var(--border2);border-radius:16px;
+  padding:32px 40px;text-align:center;min-width:260px}
+.spin{width:38px;height:38px;border:3px solid var(--border);border-top-color:var(--green);
+  border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 14px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.toast{position:fixed;bottom:20px;right:20px;background:var(--card2);
+  border:1px solid var(--border2);border-radius:10px;padding:11px 16px;
+  font-size:12px;font-weight:600;z-index:300;
+  transform:translateY(60px);opacity:0;transition:all .3s;max-width:300px}
+.toast.on{transform:translateY(0);opacity:1}
+.toast.ok{border-color:var(--green2);color:var(--green)}
+.toast.err{border-color:var(--red2);color:var(--red)}
+.toast.info{border-color:var(--blue2);color:var(--blue)}
+
+/* ── EMPTY ── */
+.empty{text-align:center;padding:48px 20px;color:var(--text3)}
+.empty-ico{font-size:32px;margin-bottom:10px;opacity:.4}
+
+/* ── WALLET CONNECT ── */
+.wallet-btn{display:flex;align-items:center;gap:8px;padding:9px 14px;border-radius:10px;
+  border:1px solid var(--green2);background:var(--green3);color:var(--green);
+  font-family:var(--sans);font-size:12px;font-weight:700;cursor:pointer;transition:all .2s;
+  letter-spacing:.3px;margin-bottom:12px;width:100%}
+.wallet-btn:hover{background:rgba(0,229,160,.22);transform:translateY(-1px)}
+.wallet-btn svg{width:16px;height:16px;flex-shrink:0}
+.wallet-addr{font-family:var(--mono);font-size:10px;color:var(--text2);
+  background:var(--bg2);border:1px solid var(--border);padding:6px 10px;
+  border-radius:6px;margin-bottom:10px;word-break:break-all;display:none}
+.cors-note{font-size:10px;color:var(--text3);margin-top:8px;line-height:1.5}
+.proxy-toggle{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--text2);margin-bottom:10px;cursor:pointer}
+.proxy-toggle input{accent-color:var(--green)}
+
+/* ── DRAWDOWN ── */
+.dd-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+
+/* ── MOBILE TOPNAV (tabs) ── */
+.tab-nav{display:none;background:var(--bg2);border-bottom:1px solid var(--border);
+  overflow-x:auto;padding:0 12px;gap:0;white-space:nowrap;flex-shrink:0}
+.tab-btn{display:inline-flex;flex-direction:column;align-items:center;gap:3px;
+  padding:10px 14px;font-size:10px;font-weight:700;letter-spacing:.8px;
+  color:var(--text3);cursor:pointer;border-bottom:2px solid transparent;
+  transition:all .2s;background:none;border-left:none;border-right:none;border-top:none}
+.tab-btn:hover{color:var(--text2)}
+.tab-btn.on{color:var(--blue);border-bottom-color:var(--blue)}
+.tab-btn svg{width:17px;height:17px}
+
+@media(max-width:768px){
+  .sidebar{display:none}
+  .tab-nav{display:flex}
+  .content{padding:14px}
+  .grid-4,.grid-3{grid-template-columns:repeat(2,1fr)}
+  .ex-cards{grid-template-columns:repeat(1,1fr)}
+  .grid-2{grid-template-columns:1fr}
+  .c-val,.ex-val{font-size:17px}
+  .cal-cell{min-height:58px}
+  .cal-p{font-size:10px}
+}
+@media(max-width:480px){
+  .grid-4{grid-template-columns:repeat(2,1fr)}
+  .dd-grid{grid-template-columns:repeat(2,1fr)}
+  .chart-hdr{flex-direction:column;align-items:flex-start;gap:8px}
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- ── SIDEBAR ── -->
+<aside class="sidebar">
+  <div class="logo-mark">⚡</div>
+  <button class="s-btn active" onclick="nav('overview')"><span class="tip">Overview</span>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+  </button>
+  <button class="s-btn" onclick="nav('pnl')"><span class="tip">P&L</span>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
+  </button>
+  <button class="s-btn" onclick="nav('positions')"><span class="tip">Posiciones</span>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+  </button>
+  <button class="s-btn" onclick="nav('calendar')"><span class="tip">Calendario</span>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+  </button>
+  <button class="s-btn" onclick="nav('transfers')"><span class="tip">Transferencias</span>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+  </button>
+  <button class="s-btn" onclick="nav('drawdown')"><span class="tip">Drawdown</span>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 17 13.5 8.5 8.5 13.5 2 7"/><polyline points="16 17 22 17 22 11"/></svg>
+  </button>
+  <div class="s-sep"></div>
+  <button class="s-btn" onclick="nav('config')"><span class="tip">Config</span>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+  </button>
+</aside>
+
+<!-- ── MAIN ── -->
+<div class="main">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="tb-left">
+      <span style="font-size:18px;font-weight:800">⚡ TradeDash</span>
+      <span class="live-dot" id="live-dot"></span>
+      <span class="tb-clock" id="clock">--:--</span>
+    </div>
+    <div class="tb-right">
+      <span id="tb-status" style="font-size:11px;color:var(--text3)">Sin conexión — ve a Config</span>
+      <button class="icon-btn" onclick="refreshAll()" title="Actualizar">
+        <svg id="ref-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- MOBILE TABS -->
+  <nav class="tab-nav">
+    <button class="tab-btn on" onclick="nav('overview')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>OVERVIEW
+    </button>
+    <button class="tab-btn" onclick="nav('pnl')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>PNL
+    </button>
+    <button class="tab-btn" onclick="nav('positions')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>POSICIONES
+    </button>
+    <button class="tab-btn" onclick="nav('calendar')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>CALENDARIO
+    </button>
+    <button class="tab-btn" onclick="nav('transfers')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>TRANSF.
+    </button>
+    <button class="tab-btn" onclick="nav('config')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>CONFIG
+    </button>
+  </nav>
+
+  <!-- CONTENT -->
+  <div class="content">
+
+    <!-- ══ OVERVIEW ══ -->
+    <div class="page on" id="pg-overview">
+      <div class="ex-cards">
+        <div class="ex-card hl">
+          <div class="ex-name">HYPERLIQUID</div>
+          <div class="ex-val" id="hl-equity">—</div>
+          <div class="ex-sub">Equity</div>
+          <span class="ex-status" id="hl-status">SIN CONF.</span>
+        </div>
+        <div class="ex-card lt">
+          <div class="ex-name">LIGHTER</div>
+          <div class="ex-val" id="lt-equity">—</div>
+          <div class="ex-sub">Balance</div>
+          <span class="ex-status" id="lt-status">SIN CONF.</span>
+        </div>
+        <div class="ex-card at">
+          <div class="ex-name">ASTER</div>
+          <div class="ex-val" id="at-equity">—</div>
+          <div class="ex-sub">Balance</div>
+          <span class="ex-status" id="at-status">SIN CONF.</span>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="c-label">Total Equity</div>
+          <div class="c-val" id="total-equity">—</div>
+          <div class="c-sub">3 exchanges</div>
+          <div class="c-bar" style="background:linear-gradient(90deg,var(--green),var(--cyan))"></div>
+        </div>
+        <div class="card">
+          <div class="c-label">PNL No Real.</div>
+          <div class="c-val g" id="total-upnl">+$0.00</div>
+          <div class="c-sub">Posiciones abiertas</div>
+          <div class="c-bar" style="background:var(--green3)"></div>
+        </div>
+        <div class="card">
+          <div class="c-label">PNL Hoy</div>
+          <div class="c-val g" id="pnl-today">+$0.00</div>
+          <div class="c-sub">Realizado hoy</div>
+          <div class="c-bar" style="background:var(--green3)"></div>
+        </div>
+        <div class="card">
+          <div class="c-label">Posiciones</div>
+          <div class="c-val b" id="pos-count">0</div>
+          <div class="c-sub">Abiertas total</div>
+          <div class="c-bar" style="background:var(--blue3)"></div>
+        </div>
+      </div>
+
+      <div id="cfg-warning" class="cfg-warn" style="margin-bottom:14px">
+        ⚙️ Configura tu wallet address en <strong onclick="nav('config')" style="cursor:pointer;text-decoration:underline">Config</strong>. Configura tu API Key de Aster en <strong onclick="nav('config')" style="cursor:pointer;text-decoration:underline">Config</strong>
+      </div>
+
+      <!-- Last trades -->
+      <div class="tbl-card">
+        <div class="tbl-hdr"><span class="tbl-ttl">ÚLTIMOS TRADES</span></div>
+        <div id="last-trades-wrap">
+          <div class="empty"><div class="empty-ico">📊</div>Sin trades — pulsa actualizar después de configurar</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ PNL ══ -->
+    <div class="page" id="pg-pnl">
+      <div class="grid-4" style="margin-bottom:16px">
+        <div class="card"><div class="c-label">PNL Total</div><div class="c-val g" id="pnl-total-val">+$0.00</div><div class="c-sub">Realizado</div></div>
+        <div class="card"><div class="c-label">PNL 7 días</div><div class="c-val g" id="pnl-7d">+$0.00</div></div>
+        <div class="card"><div class="c-label">PNL 30 días</div><div class="c-val g" id="pnl-30d">+$0.00</div></div>
+        <div class="card"><div class="c-label">Win Rate</div><div class="c-val b" id="wr-val">—%</div><div class="c-sub" id="wr-sub">0 gan / 0 perd</div></div>
+        <div class="card"><div class="c-label">Mejor día</div><div class="c-val g" id="best-day">+$0.00</div><div class="c-sub" id="best-day-date">—</div></div>
+        <div class="card"><div class="c-label">Peor día</div><div class="c-val r" id="worst-day">-$0.00</div><div class="c-sub" id="worst-day-date">—</div></div>
+        <div class="card"><div class="c-label">Días ✅</div><div class="c-val g" id="pos-days">0</div></div>
+        <div class="card"><div class="c-label">Días ❌</div><div class="c-val r" id="neg-days">0</div></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-hdr">
+          <span class="chart-ttl">P&L DIARIO</span>
+          <div class="tfs">
+            <button class="tf on" onclick="setTF(this)">30D</button>
+            <button class="tf" onclick="setTF(this)">90D</button>
+          </div>
+        </div>
+        <div class="bar-wrap" id="pnl-bars"></div>
+      </div>
+      <div class="tbl-card">
+        <div class="tbl-hdr"><span class="tbl-ttl">HISTORIAL DE TRADES</span></div>
+        <table>
+          <thead><tr><th>Fecha</th><th>Par</th><th>Dir.</th><th>Tamaño</th><th>Precio</th><th>P&L</th></tr></thead>
+          <tbody id="trades-tbody"><tr><td colspan="6"><div class="empty"><div class="empty-ico">📋</div>Sin datos</div></td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ══ POSITIONS ══ -->
+    <div class="page" id="pg-positions">
+      <div class="grid-4" style="margin-bottom:16px">
+        <div class="card"><div class="c-label">Abiertas</div><div class="c-val b" id="p-open">0</div></div>
+        <div class="card"><div class="c-label">PNL No Real.</div><div class="c-val" id="p-upnl">$0.00</div></div>
+        <div class="card"><div class="c-label">Exposición</div><div class="c-val" id="p-exp">$0.00</div></div>
+        <div class="card"><div class="c-label">Margen Usado</div><div class="c-val go" id="p-margin">$0.00</div></div>
+      </div>
+      <div class="tbl-card">
+        <div class="tbl-hdr"><span class="tbl-ttl">POSICIONES ABIERTAS</span></div>
+        <table>
+          <thead><tr><th>Par</th><th>Dir.</th><th>Tamaño</th><th>Entrada</th><th>Margen</th><th>P&L</th><th>Liq. Est.</th></tr></thead>
+          <tbody id="pos-tbody"><tr><td colspan="7"><div class="empty"><div class="empty-ico">📈</div>No hay posiciones abiertas</div></td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ══ CALENDAR ══ -->
+    <div class="page" id="pg-calendar">
+      <div class="cal-wrap">
+        <div class="cal-top">
+          <div class="cal-nav">
+            <button class="cal-arr" onclick="calMove(-1)">‹</button>
+            <span class="cal-mo" id="cal-label">Cargando...</span>
+            <button class="cal-arr" onclick="calMove(1)">›</button>
+          </div>
+          <div class="cal-badge">
+            <span class="live-dot" style="width:7px;height:7px"></span>
+            <span id="cal-mode">DEMO</span>
+          </div>
+        </div>
+        <div class="cal-dnames">
+          <div class="cal-dn">LUN</div><div class="cal-dn">MAR</div><div class="cal-dn">MIÉ</div>
+          <div class="cal-dn">JUE</div><div class="cal-dn">VIE</div><div class="cal-dn">SÁB</div><div class="cal-dn">DOM</div>
+        </div>
+        <div class="cal-grid" id="cal-grid"></div>
+        <div class="cal-legend">
+          <div class="leg"><span class="leg-sq" style="background:rgba(0,229,160,.5);border:1px solid var(--green2)"></span>Ganancia alta</div>
+          <div class="leg"><span class="leg-sq" style="background:rgba(0,196,131,.2);border:1px solid rgba(0,196,131,.4)"></span>Ganancia baja</div>
+          <div class="leg"><span class="leg-sq" style="background:rgba(255,64,96,.45);border:1px solid var(--red2)"></span>Pérdida alta</div>
+          <div class="leg"><span class="leg-sq" style="background:rgba(204,34,68,.18);border:1px solid rgba(204,34,68,.35)"></span>Pérdida baja</div>
+        </div>
+        <div class="grid-4" style="margin-top:20px">
+          <div class="card"><div class="c-label">P&L Mes</div><div class="c-val" id="cal-mpnl">$0.00</div></div>
+          <div class="card"><div class="c-label">Días +</div><div class="c-val g" id="cal-wdays">0</div></div>
+          <div class="card"><div class="c-label">Días -</div><div class="c-val r" id="cal-ldays">0</div></div>
+          <div class="card"><div class="c-label">Mejor Día</div><div class="c-val g" id="cal-best">+$0.00</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ TRANSFERS ══ -->
+    <div class="page" id="pg-transfers">
+      <div class="grid-3" style="margin-bottom:16px">
+        <div class="card"><div class="c-label">Total Depositado</div><div class="c-val g" id="dep-in">$0.00</div></div>
+        <div class="card"><div class="c-label">Total Retirado</div><div class="c-val r" id="dep-out">$0.00</div></div>
+        <div class="card"><div class="c-label">Net Flow</div><div class="c-val" id="dep-net">$0.00</div></div>
+      </div>
+      <div class="tbl-card">
+        <div class="tbl-hdr"><span class="tbl-ttl">HISTORIAL DE DEPÓSITOS Y RETIROS</span></div>
+        <div id="dep-list"><div class="empty"><div class="empty-ico">💰</div>Conecta un exchange para ver movimientos</div></div>
+      </div>
+    </div>
+
+    <!-- ══ DRAWDOWN ══ -->
+    <div class="page" id="pg-drawdown">
+      <div class="dd-grid">
+        <div class="card"><div class="c-label">Max Drawdown</div><div class="c-val r" id="dd-max">—</div></div>
+        <div class="card"><div class="c-label">Drawdown Actual</div><div class="c-val" id="dd-cur">0.00%</div></div>
+        <div class="card"><div class="c-label">Pico Máximo</div><div class="c-val b" id="dd-peak">—</div></div>
+        <div class="card"><div class="c-label">Recuperación Prom.</div><div class="c-val go" id="dd-rec">—</div></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-hdr"><span class="chart-ttl">CURVA DE DRAWDOWN</span></div>
+        <svg class="svg-chart" height="160" id="dd-svg" viewBox="0 0 800 160" preserveAspectRatio="none">
+          <defs><linearGradient id="ddg" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#ff4060" stop-opacity=".35"/>
+            <stop offset="100%" stop-color="#ff4060" stop-opacity="0"/>
+          </linearGradient></defs>
+          <path id="dd-area" fill="url(#ddg)"/>
+          <path id="dd-line" fill="none" stroke="#ff4060" stroke-width="1.5"/>
+        </svg>
+      </div>
+    </div>
+
+    <!-- ══ CONFIG ══ -->
+    <div class="page" id="pg-config">
+      <!-- HYPERLIQUID -->
+      <div class="cfg-section">
+        <div class="cfg-ex-badge hl">HYPERLIQUID</div>
+        <div class="cfg-info">ℹ️ Solo necesitas tu <strong>wallet address pública</strong> (0x...). Solo lectura, nunca private key.</div>
+
+        <button class="wallet-btn" onclick="connectRabbyForHL()" style="border-color:var(--blue2);background:var(--blue3);color:var(--blue)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4z"/></svg>
+          🐇 Conectar Wallet Rabby
+        </button>
+        <div class="wallet-addr" id="hl-wallet-addr"></div>
+
+        <div class="cfg-label">Wallet Address</div>
+        <input class="cfg-input" id="hl-addr" placeholder="0xTuWalletAddress..." />
+        <button class="cfg-btn hl" onclick="testHL()">Guardar y Probar Conexión HL</button>
+      </div>
+
+      <!-- LIGHTER -->
+      <div class="cfg-section">
+        <div class="cfg-ex-badge lt">LIGHTER</div>
+        <div class="cfg-info">ℹ️ Para datos de lectura solo necesitas tu <strong>Account Index</strong> (el número de cuenta, generalmente 0 o el que ves en tu perfil de Lighter).<br><br>También puedes pegar tu <strong>Read-Only Token</strong> (<code>ro:...</code>) para acceder a trades e historial.</div>
+
+        <button class="wallet-btn" onclick="connectRabbyForLighter()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4z"/></svg>
+          🐇 Conectar Wallet Rabby
+        </button>
+        <div class="wallet-addr" id="lt-wallet-addr"></div>
+
+        <div class="cfg-label">Account Index (número de cuenta)</div>
+        <input class="cfg-input" id="lt-idx" placeholder="722954" />
+        <div class="cfg-label">Read-Only Token (opcional, para historial)</div>
+        <input class="cfg-input" id="lt-token" placeholder="ro:722954:all:..." />
+        <div class="cfg-label">L1 Address (opcional, para verificación)</div>
+        <input class="cfg-input" id="lt-addr" placeholder="0xF7B40DC407731f456C99Fbf4c24F169c9aCbbDFe" />
+
+        <label class="proxy-toggle">
+          <input type="checkbox" id="lt-use-proxy" checked>
+          Usar proxy CORS (recomendado si no carga)
+        </label>
+        <p class="cors-note">Si ves error de red o CORS, asegúrate de que el proxy esté activado. El proxy es público y solo lee datos.</p>
+
+        <button class="cfg-btn lt" onclick="testLT()">Guardar y Probar Conexión LT</button>
+      </div>
+
+      <!-- ASTER -->
+      <div class="cfg-section">
+        <div class="cfg-ex-badge at">ASTER</div>
+        <div class="cfg-warn">⚠️ Aster requiere API Key + Secret (firma HMAC-SHA256). Si hay error CORS, activa la extensión "CORS Unblock" en tu navegador.</div>
+        <div class="cfg-label">API KEY</div>
+        <input class="cfg-input" id="at-key" placeholder="Tu API Key de Aster" />
+        <div class="cfg-label">API SECRET</div>
+        <input class="cfg-input" id="at-secret" placeholder="Tu API Secret" type="password" />
+        <button class="cfg-btn at" onclick="testAT()">Guardar y Probar Conexión AT</button>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+</div><!-- /app -->
+
+<!-- Loading -->
+<div class="overlay" id="ov">
+  <div class="overlay-box">
+    <div class="spin"></div>
+    <div style="font-weight:700;margin-bottom:6px" id="ov-title">Conectando...</div>
+    <div style="font-size:11px;color:var(--text2)" id="ov-msg">Consultando exchange</div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════
+const S = {
+  hl: { addr:'', connected:false, data:null },
+  lt: { idx:'', token:'', addr:'', connected:false, data:null },
+  at: { key:'', secret:'', connected:false, data:null },
+  calY: new Date().getFullYear(),
+  calM: new Date().getMonth(),
+  calData: {},
+};
+
+// ══════════════════════════════════════════
+//  NAVIGATION
+// ══════════════════════════════════════════
+const PAGES = ['overview','pnl','positions','calendar','transfers','drawdown','config'];
+function nav(id){
+  PAGES.forEach(p=>{
+    document.getElementById('pg-'+p).classList.toggle('on', p===id);
+  });
+  document.querySelectorAll('.s-btn').forEach((b,i)=>{
+    b.classList.toggle('active', PAGES[i]===id);
+  });
+  document.querySelectorAll('.tab-btn').forEach((b,i)=>{
+    b.classList.toggle('on', PAGES[i]===id);
+  });
+  if(id==='calendar') renderCal();
+  if(id==='pnl') renderBars();
+  if(id==='drawdown') renderDD();
+}
+
+// ══════════════════════════════════════════
+//  CLOCK
+// ══════════════════════════════════════════
+function tick(){
+  const now=new Date();
+  document.getElementById('clock').textContent=
+    now.getHours().toString().padStart(2,'0')+':'+now.getMinutes().toString().padStart(2,'0');
+}
+tick(); setInterval(tick,30000);
+
+// ══════════════════════════════════════════
+//  RABBY WALLET CONNECT
+// ══════════════════════════════════════════
+async function connectRabby(){
+  if(!window.ethereum){ toast('No se detectó wallet. ¿Estás en Rabby o MetaMask?','err'); return null; }
+  try {
+    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+    return accounts[0] || null;
+  } catch(e){
+    toast('Wallet rechazada: '+e.message,'err');
+    return null;
+  }
+}
+
+async function connectRabbyForHL(){
+  const addr = await connectRabby();
+  if(!addr) return;
+  document.getElementById('hl-addr').value = addr;
+  const el = document.getElementById('hl-wallet-addr');
+  el.textContent = '✓ '+addr;
+  el.style.display = 'block';
+  toast('Wallet conectada: '+addr.slice(0,10)+'...','ok');
+}
+
+async function connectRabbyForLighter(){
+  const addr = await connectRabby();
+  if(!addr) return;
+  document.getElementById('lt-addr').value = addr;
+  const el = document.getElementById('lt-wallet-addr');
+  el.textContent = '✓ '+addr;
+  el.style.display = 'block';
+  // Try to auto-fetch account index from Lighter using this address
+  toast('Buscando tu cuenta Lighter con esta address...','info');
+  try {
+    const data = await ltGet(`/api/v1/account?by=l1_address&value=${addr}`);
+    const idx = data?.account_index ?? data?.index ?? data?.account?.account_index ?? null;
+    if(idx !== null){
+      document.getElementById('lt-idx').value = String(idx);
+      toast('✓ Account Index encontrado: '+idx,'ok');
+    } else {
+      toast('Address conectada. Ingresa tu Account Index manualmente.','info');
+    }
+  } catch(e){
+    toast('Address conectada. Ingresa tu Account Index manualmente.','info');
+  }
+}
+
+// ══════════════════════════════════════════
+//  LIGHTER API
+//  Public: GET /api/v1/account?by=index&value=XXXXXX
+//  Auth:   same with Authorization: ro:... header
+// ══════════════════════════════════════════
+const LT_BASE = 'https://mainnet.zklighter.elliot.ai';
+const LT_PROXY = 'https://corsproxy.io/?url='+encodeURIComponent(LT_BASE);
+
+async function ltGet(path, token=''){
+  const useProxy = document.getElementById('lt-use-proxy')?.checked ?? true;
+  const base = useProxy ? LT_PROXY+encodeURIComponent(path) : LT_BASE+path;
+  const headers = {'Content-Type':'application/json'};
+  if(token) headers['Authorization'] = token;
+
+  // Try direct first if proxy not selected, otherwise try proxy
+  let r;
+  try {
+    r = await fetch(useProxy ? LT_PROXY+encodeURIComponent(path) : LT_BASE+path, {headers});
+  } catch(e){
+    // If direct fails, retry with proxy automatically
+    if(!useProxy){
+      r = await fetch(LT_PROXY+encodeURIComponent(path), {headers});
+    } else throw e;
+  }
+  if(!r.ok) throw new Error('HTTP '+r.status);
+  const text = await r.text();
+  try { return JSON.parse(text); } catch(e){ throw new Error('Respuesta inválida de Lighter'); }
+}
+
+async function loadLighter(){
+  const idx = S.lt.idx;
+  const token = S.lt.token;
+  if(!idx){ toast('Ingresa tu Account Index de Lighter','err'); return; }
+
+  showOv('Conectando a Lighter...','Leyendo cuenta #'+idx);
+  try {
+    // Public endpoint - always works
+    const acct = await ltGet(`/api/v1/account?by=index&value=${idx}`);
+    console.log('Lighter raw response:', JSON.stringify(acct).slice(0,600));
+
+    // Try to get trades if token provided
+    let trades = [];
+    if(token){
+      try {
+        const tRes = await ltGet(`/api/v1/trades?account_index=${idx}&limit=200`, token);
+        console.log('Lighter trades:', tRes);
+        trades = tRes.trades || tRes.fills || tRes.data || [];
+      } catch(e){ console.warn('Trades require valid token',e); }
+    }
+
+    // Parse account fields (Lighter returns different field names per version)
+    // Normalize: the response can be {account:{...}} or flat
+    const acctData = acct.account ?? acct;
+    const collateral = parseFloat(
+      acctData.collateral ?? acctData.balance ?? acctData.total_collateral ??
+      acctData.equity ?? acctData.account_value ?? 0
+    );
+    const unrealPnl = parseFloat(
+      acctData.unrealized_pnl ?? acctData.unrealizedPnl ?? 0
+    );
+    const realPnl = parseFloat(
+      acctData.realized_pnl ?? acctData.realizedPnl ?? 0
+    );
+
+    // Positions — handle nested or flat arrays
+    const rawPos = acctData.positions ?? acctData.open_positions ?? [];
+    const positions = rawPos.map(p=>({
+      coin: p.market_id || p.symbol || p.pair || p.market || '—',
+      side: parseFloat(p.size??p.quantity??p.base_amount??0) > 0 ? 'LONG':'SHORT',
+      sz: Math.abs(parseFloat(p.size??p.quantity??p.base_amount??0)),
+      entryPx: parseFloat(p.avg_entry_price??p.entry_price??p.average_price??0),
+      uPnl: parseFloat(p.unrealized_pnl??p.unrealizedPnl??0),
+      margin: parseFloat(p.margin??p.initial_margin??0),
+      liqPx: parseFloat(p.liquidation_price??p.liq_price??0),
+    }));
+
+    // Build cal data
+    const calData = {};
+    trades.forEach(t=>{
+      const pnl = parseFloat(t.pnl??t.realized_pnl??t.profit??0);
+      const ts = t.timestamp??t.created_at??t.time;
+      if(!ts) return;
+      const d = new Date(typeof ts==='number'&&ts<1e12 ? ts*1000 : ts);
+      const key=`${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+      if(!calData[key]) calData[key]={pnl:0,trades:0};
+      calData[key].pnl+=pnl; calData[key].trades++;
+    });
+
+    const totalPnl = realPnl || trades.reduce((a,t)=>a+parseFloat(t.pnl??t.realized_pnl??0),0);
+    const wins = trades.filter(t=>parseFloat(t.pnl??t.realized_pnl??0)>0).length;
+    const losses = trades.filter(t=>parseFloat(t.pnl??t.realized_pnl??0)<0).length;
+
+    S.lt.data = {
+      balance: collateral, uPnl: unrealPnl, realPnl: totalPnl,
+      wins, losses, positions, calData,
+      fills: trades.slice(0,100),
+    };
+    S.lt.connected = true;
+    Object.assign(S.calData, calData);
+
+    hideOv();
+    updateOverview();
+    toast('✓ Lighter conectado — saldo $'+collateral.toFixed(2),'ok');
+  } catch(e){
+    hideOv();
+    console.error(e);
+    toast('Error Lighter: '+e.message,'err');
+    // Still show partial data
+    S.lt.data = {balance:0,uPnl:0,realPnl:0,wins:0,losses:0,positions:[],calData:{},fills:[]};
+    S.lt.connected = false;
+    updateOverview();
+  }
+}
+
+// ══════════════════════════════════════════
+//  HYPERLIQUID API
+// ══════════════════════════════════════════
+async function hlPost(body){
+  const r = await fetch('https://api.hyperliquid.xyz/info',{
+    method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)
+  });
+  if(!r.ok) throw new Error('HTTP '+r.status);
+  return r.json();
+}
+
+async function loadHL(){
+  const addr = S.hl.addr;
+  if(!addr){ toast('Ingresa tu wallet address de Hyperliquid','err'); return; }
+  showOv('Conectando a Hyperliquid...','Leyendo cuenta');
+  try {
+    const [state, fills, transfers] = await Promise.all([
+      hlPost({type:'clearinghouseState',user:addr}),
+      hlPost({type:'userFills',user:addr}),
+      hlPost({type:'userNonFundingLedgerUpdates',user:addr}),
+    ]);
+    if(!state || state.error) throw new Error(state?.error||'Sin datos');
+
+    const balance = parseFloat(state.crossMarginSummary?.accountValue || state.marginSummary?.accountValue || 0);
+    const uPnl = parseFloat(state.crossMarginSummary?.unrealizedPnl || 0);
+    const positions = (state.assetPositions||[]).map(p=>({
+      coin: p.position?.coin||'?',
+      side: parseFloat(p.position?.szi||0)>0?'LONG':'SHORT',
+      sz: Math.abs(parseFloat(p.position?.szi||0)),
+      entryPx: parseFloat(p.position?.entryPx||0),
+      uPnl: parseFloat(p.position?.unrealizedPnl||0),
+      margin: parseFloat(p.position?.marginUsed||0),
+      liqPx: parseFloat(p.position?.liquidationPx||0),
+    }));
+
+    const fillsP = (fills||[]).map(f=>({
+      time:f.time, coin:f.coin, dir:f.dir,
+      sz:parseFloat(f.sz||0), px:parseFloat(f.px||0),
+      pnl:parseFloat(f.closedPnl||0), fee:parseFloat(f.fee||0),
+    }));
+
+    const calData={};
+    fillsP.forEach(f=>{
+      const d=new Date(f.time);
+      const k=`${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+      if(!calData[k]) calData[k]={pnl:0,trades:0};
+      calData[k].pnl+=f.pnl; calData[k].trades++;
+    });
+
+    const wins=fillsP.filter(f=>f.pnl>0).length;
+    const losses=fillsP.filter(f=>f.pnl<0).length;
+    const totalPnl=fillsP.reduce((a,f)=>a+f.pnl,0);
+
+    // Deposits
+    const deps=(transfers||[]).map(t=>({
+      type:parseFloat(t.delta?.usdc||0)>0?'deposit':'withdraw',
+      amount:Math.abs(parseFloat(t.delta?.usdc||0)),
+      time:t.time, hash:t.hash||''
+    }));
+
+    S.hl.data={balance,uPnl,realPnl:totalPnl,wins,losses,positions,calData,fills:fillsP.slice(0,100),deposits:deps};
+    S.hl.connected=true;
+    Object.assign(S.calData, calData);
+    hideOv();
+    updateOverview();
+    toast('✓ Hyperliquid conectado — equity $'+balance.toFixed(2),'ok');
+  } catch(e){
+    hideOv();
+    toast('Error HL: '+e.message,'err');
+  }
+}
+
+// ══════════════════════════════════════════
+//  ASTER API (HMAC-SHA256)
+// ══════════════════════════════════════════
+async function hmacSign(secret, message){
+  const enc = new TextEncoder();
+  const key = await crypto.subtle.importKey('raw',enc.encode(secret),{name:'HMAC',hash:'SHA-256'},false,['sign']);
+  const sig = await crypto.subtle.sign('HMAC',key,enc.encode(message));
+  return Array.from(new Uint8Array(sig)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+
+async function asterGet(path){
+  const key=S.at.key, secret=S.at.secret;
+  const ts=Date.now().toString();
+  const sig=await hmacSign(secret, ts+key+path);
+  const headers={'X-API-KEY':key,'X-TIMESTAMP':ts,'X-SIGNATURE':sig,'Content-Type':'application/json'};
+  // Aster endpoint (update if they change it)
+  const r=await fetch('https://api.aster.finance'+path,{headers});
+  if(!r.ok) throw new Error('HTTP '+r.status);
+  return r.json();
+}
+
+async function loadAster(){
+  if(!S.at.key||!S.at.secret){ toast('Ingresa API Key y Secret de Aster','err'); return; }
+  showOv('Conectando a Aster...','Verificando credenciales');
+  try {
+    const acct = await asterGet('/api/v1/account');
+    console.log('Aster account:', acct);
+    const balance = parseFloat(acct.balance??acct.equity??acct.total_balance??0);
+    S.at.data={balance, uPnl:0, realPnl:0, wins:0, losses:0, positions:[], calData:{}, fills:[], deposits:[]};
+    S.at.connected=true;
+    hideOv();
+    updateOverview();
+    toast('✓ Aster conectado — balance $'+balance.toFixed(2),'ok');
+  } catch(e){
+    hideOv();
+    toast('Error Aster: '+e.message+' (¿CORS? Activa extensión CORS Unblock)','err');
+    S.at.connected=false;
+  }
+}
+
+// ══════════════════════════════════════════
+//  CONFIG TESTERS
+// ══════════════════════════════════════════
+function testHL(){
+  S.hl.addr = document.getElementById('hl-addr').value.trim();
+  loadHL();
+}
+function testLT(){
+  S.lt.idx   = document.getElementById('lt-idx').value.trim();
+  S.lt.token = document.getElementById('lt-token').value.trim();
+  S.lt.addr  = document.getElementById('lt-addr').value.trim();
+  loadLighter();
+}
+function testAT(){
+  S.at.key    = document.getElementById('at-key').value.trim();
+  S.at.secret = document.getElementById('at-secret').value.trim();
+  loadAster();
+}
+
+// ══════════════════════════════════════════
+//  UPDATE OVERVIEW
+// ══════════════════════════════════════════
+function fmt(n, sign=true){
+  const s = sign ? (n>=0?'+':'-') : (n<0?'-':'');
+  return s+'$'+Math.abs(n).toFixed(2);
+}
+function cls(n){ return n>=0?'g':'r'; }
+
+function updateOverview(){
+  const hl=S.hl.data, lt=S.lt.data, at=S.at.data;
+  const anyConnected = S.hl.connected||S.lt.connected||S.at.connected;
+  document.getElementById('cfg-warning').style.display = anyConnected?'none':'';
+
+  // Exchange cards
+  setText('hl-equity', hl ? '$'+hl.balance.toFixed(2) : '—', hl?'':'');
+  setStatus('hl-status', S.hl.connected?'LIVE':'SIN CONF.');
+  setText('lt-equity', lt ? '$'+lt.balance.toFixed(2) : '—', lt?'':'');
+  setStatus('lt-status', S.lt.connected?'LIVE':'SIN CONF.');
+  setText('at-equity', at ? '$'+at.balance.toFixed(2) : '—', at?'':'');
+  setStatus('at-status', S.at.connected?'LIVE':'SIN CONF.');
+
+  // Totals
+  const totalBal = (hl?.balance||0)+(lt?.balance||0)+(at?.balance||0);
+  const totalUpnl = (hl?.uPnl||0)+(lt?.uPnl||0)+(at?.uPnl||0);
+  const allPos = [...(hl?.positions||[]),...(lt?.positions||[]),...(at?.positions||[])];
+  const todayPnl = calcToday();
+
+  setText('total-equity', anyConnected ? '$'+totalBal.toFixed(2) : '—');
+  setText('total-upnl', fmt(totalUpnl), cls(totalUpnl));
+  setText('pnl-today', fmt(todayPnl), cls(todayPnl));
+  setText('pos-count', allPos.length, 'b');
+
+  // Status bar
+  const parts=[];
+  if(S.hl.connected) parts.push('HL ✓');
+  if(S.lt.connected) parts.push('LT ✓');
+  if(S.at.connected) parts.push('AT ✓');
+  document.getElementById('tb-status').textContent = parts.length ? parts.join(' · ')+' — Live' : 'Sin conexión — ve a Config';
+
+  updatePNL();
+  updatePositions();
+  updateTransfers();
+}
+
+function calcToday(){
+  const now=Date.now(), day=86400000;
+  let total=0;
+  const all=[...(S.hl.data?.fills||[]),...(S.lt.data?.fills||[]),...(S.at.data?.fills||[])];
+  all.forEach(f=>{ if((now-f.time)<day) total+=parseFloat(f.pnl||0); });
+  return total;
+}
+
+function setText(id,val,extraCls=''){
+  const el=document.getElementById(id);
+  if(!el) return;
+  el.textContent=val;
+  if(extraCls!==undefined && extraCls!==''){
+    el.className = el.className.replace(/\b[grb]\b/g,'').trim();
+    if(extraCls) el.className += ' '+extraCls;
+  }
+}
+function setStatus(id,txt){
+  const el=document.getElementById(id); if(!el) return;
+  el.textContent=txt;
+}
+
+// ══════════════════════════════════════════
+//  UPDATE PNL PAGE
+// ══════════════════════════════════════════
+function updatePNL(){
+  const allFills=[...(S.hl.data?.fills||[]),...(S.lt.data?.fills||[]),...(S.at.data?.fills||[])];
+  const total=allFills.reduce((a,f)=>a+f.pnl,0);
+  const wins=allFills.filter(f=>f.pnl>0).length;
+  const losses=allFills.filter(f=>f.pnl<0).length;
+  const now=Date.now();
+  const p7=allFills.filter(f=>(now-f.time)<7*86400000).reduce((a,f)=>a+f.pnl,0);
+  const p30=allFills.filter(f=>(now-f.time)<30*86400000).reduce((a,f)=>a+f.pnl,0);
+
+  setText('pnl-total-val',fmt(total),cls(total));
+  setText('pnl-7d',fmt(p7),cls(p7));
+  setText('pnl-30d',fmt(p30),cls(p30));
+  const wr=wins+losses>0?((wins/(wins+losses))*100).toFixed(1)+'%':'—%';
+  setText('wr-val',wr,'b');
+  setText('wr-sub',wins+' gan / '+losses+' perd');
+
+  // Daily aggregation
+  const dayMap={};
+  allFills.forEach(f=>{
+    const d=new Date(f.time); const k=d.toDateString();
+    if(!dayMap[k]) dayMap[k]={pnl:0,date:d};
+    dayMap[k].pnl+=f.pnl;
+  });
+  const days=Object.values(dayMap).sort((a,b)=>a.date-b.date);
+  let best=null,worst=null;
+  let posDays=0,negDays=0;
+  days.forEach(d=>{
+    if(d.pnl>0) posDays++;
+    if(d.pnl<0) negDays++;
+    if(!best||d.pnl>best.pnl) best=d;
+    if(!worst||d.pnl<worst.pnl) worst=d;
+  });
+  setText('best-day',best?fmt(best.pnl):'+$0.00','g');
+  setText('best-day-date',best?best.date.toLocaleDateString('es-ES'):'—');
+  setText('worst-day',worst?fmt(worst.pnl,false):'-$0.00','r');
+  setText('worst-day-date',worst?worst.date.toLocaleDateString('es-ES'):'—');
+  setText('pos-days',posDays,'g');
+  setText('neg-days',negDays,'r');
+
+  // Trades table
+  const tbody=document.getElementById('trades-tbody');
+  if(allFills.length){
+    tbody.innerHTML=allFills.slice(0,80).map(f=>`
+      <tr>
+        <td>${new Date(f.time).toLocaleDateString('es-ES')}</td>
+        <td><span class="cn">${f.coin}</span></td>
+        <td><span class="badge ${f.pnl>=0?'bl':'bs'}">${f.dir||'—'}</span></td>
+        <td>${f.sz||'—'}</td>
+        <td>${f.px?'$'+f.px.toFixed(2):'—'}</td>
+        <td class="${cls(f.pnl)}">${fmt(f.pnl)}</td>
+      </tr>`).join('');
+    // Last trades for overview
+    const ltw=document.getElementById('last-trades-wrap');
+    ltw.innerHTML='<table><thead><tr><th>Fecha</th><th>Par</th><th>P&L</th></tr></thead><tbody>'+
+      allFills.slice(0,10).map(f=>`<tr><td>${new Date(f.time).toLocaleDateString('es-ES')}</td><td><span class="cn">${f.coin}</span></td><td class="${cls(f.pnl)}">${fmt(f.pnl)}</td></tr>`).join('')+'</tbody></table>';
+  }
+}
+
+// ══════════════════════════════════════════
+//  POSITIONS
+// ══════════════════════════════════════════
+function updatePositions(){
+  const all=[...(S.hl.data?.positions||[]),...(S.lt.data?.positions||[]),...(S.at.data?.positions||[])];
+  const upnl=all.reduce((a,p)=>a+p.uPnl,0);
+  const exp=all.reduce((a,p)=>a+(p.sz*p.entryPx),0);
+  const mg=all.reduce((a,p)=>a+p.margin,0);
+  setText('p-open',all.length,'b');
+  setText('p-upnl',fmt(upnl),cls(upnl));
+  setText('p-exp','$'+exp.toFixed(2));
+  setText('p-margin','$'+mg.toFixed(2));
+  const tb=document.getElementById('pos-tbody');
+  if(all.length){
+    tb.innerHTML=all.map(p=>`
+      <tr>
+        <td><span class="cn">${p.coin}</span></td>
+        <td><span class="badge ${p.side==='LONG'?'bl':'bs'}">${p.side}</span></td>
+        <td>${p.sz}</td>
+        <td>$${p.entryPx.toFixed(2)}</td>
+        <td>$${p.margin.toFixed(2)}</td>
+        <td class="${cls(p.uPnl)}">${fmt(p.uPnl)}</td>
+        <td class="r">${p.liqPx?'$'+p.liqPx.toFixed(2):'—'}</td>
+      </tr>`).join('');
+  }
+}
+
+// ══════════════════════════════════════════
+//  TRANSFERS
+// ══════════════════════════════════════════
+function updateTransfers(){
+  const all=[...(S.hl.data?.deposits||[]),...(S.at.data?.deposits||[])];
+  const totalIn=all.filter(x=>x.type==='deposit').reduce((a,x)=>a+x.amount,0);
+  const totalOut=all.filter(x=>x.type==='withdraw').reduce((a,x)=>a+x.amount,0);
+  const net=totalIn-totalOut;
+  setText('dep-in','$'+totalIn.toFixed(2),'g');
+  setText('dep-out','$'+totalOut.toFixed(2),'r');
+  setText('dep-net',fmt(net),cls(net));
+  const list=document.getElementById('dep-list');
+  if(all.length){
+    list.innerHTML=all.sort((a,b)=>b.time-a.time).map(x=>`
+      <div style="display:grid;grid-template-columns:1fr auto auto auto;gap:14px;align-items:center;padding:12px 18px;border-bottom:1px solid rgba(29,38,64,.4)">
+        <div>
+          <div style="display:inline-block;padding:2px 8px;border-radius:4px;font-size:9px;font-weight:700;margin-bottom:4px;${x.type==='deposit'?'background:var(--green3);color:var(--green)':'background:var(--red3);color:var(--red)'}">${x.type==='deposit'?'DEPÓSITO':'RETIRO'}</div>
+          <div style="font-size:10px;color:var(--text3);font-family:var(--mono)">${new Date(x.time).toLocaleString('es-ES')}</div>
+        </div>
+        <div style="font-family:var(--mono);font-size:10px;color:var(--text3)">${x.hash?x.hash.slice(0,12)+'...':'—'}</div>
+        <div style="font-family:var(--mono);font-size:13px;font-weight:700;${x.type==='deposit'?'color:var(--green)':'color:var(--red)'}">
+          ${x.type==='deposit'?'+':'-'}$${x.amount.toFixed(2)}</div>
+        <div style="font-size:9px;font-weight:700;padding:2px 8px;border-radius:4px;background:var(--green3);color:var(--green)">CONF.</div>
+      </div>`).join('');
+  }
+}
+
+// ══════════════════════════════════════════
+//  CALENDAR
+// ══════════════════════════════════════════
+const MONTHS=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+
+function calMove(d){
+  S.calM+=d;
+  if(S.calM<0){S.calM=11;S.calY--;}
+  if(S.calM>11){S.calM=0;S.calY++;}
+  renderCal();
+}
+
+function renderCal(){
+  const {calY,calM}=S;
+  document.getElementById('cal-label').textContent=MONTHS[calM]+' '+calY;
+  const connected=S.hl.connected||S.lt.connected||S.at.connected;
+  document.getElementById('cal-mode').textContent=connected?'LIVE':'DEMO';
+
+  const today=new Date();
+  let startDow=new Date(calY,calM,1).getDay();
+  startDow=(startDow+6)%7;
+  const daysInMonth=new Date(calY,calM+1,0).getDate();
+
+  // Merge all calData
+  const allCal={...S.calData};
+  // If no real data, use demo
+  if(!connected) Object.assign(allCal, DEMO_CAL);
+
+  let html='';
+  for(let i=0;i<startDow;i++) html+='<div class="cal-cell emp"></div>';
+
+  let monthPnl=0,winD=0,lossD=0,bestD=0;
+  for(let d=1;d<=daysInMonth;d++){
+    const key=`${calY}-${calM}-${d}`;
+    const dd=allCal[key];
+    const isToday=today.getFullYear()===calY&&today.getMonth()===calM&&today.getDate()===d;
+    let cls='cal-cell'+(isToday?' today':'');
+    let inner='';
+    if(dd){
+      const p=dd.pnl; monthPnl+=p;
+      if(p>0){winD++;if(p>bestD)bestD=p;}
+      if(p<0) lossD++;
+      const a=Math.abs(p);
+      if(p>0) cls+=a>=3?' gh':' gl';
+      else cls+=a>=3?' lh':' ll';
+      const col=p>=0?'var(--green)':'var(--red)';
+      const sign=p>=0?'+':'';
+      inner=`<div class="cal-p" style="color:${col}">${sign}$${a.toFixed(2)}</div><div class="cal-t">${dd.trades}t</div>`;
+    }
+    html+=`<div class="${cls}"><div class="cal-d">${d}</div>${inner}</div>`;
+  }
+  document.getElementById('cal-grid').innerHTML=html;
+
+  const sign=monthPnl>=0?'+':'';
+  const col=monthPnl>=0?'g':'r';
+  setText('cal-mpnl',sign+'$'+Math.abs(monthPnl).toFixed(2),col);
+  setText('cal-wdays',winD,'g');
+  setText('cal-ldays',lossD,'r');
+  setText('cal-best','+$'+bestD.toFixed(2),'g');
+}
+
+// Demo calendar data (May 2026 like the screenshot)
+const DEMO_CAL = {
+  '2026-4-1':{pnl:-0.20,trades:1},'2026-4-5':{pnl:0.56,trades:5},'2026-4-6':{pnl:0.74,trades:2},
+  '2026-4-8':{pnl:4.45,trades:1},'2026-4-10':{pnl:-5.66,trades:1},'2026-4-11':{pnl:1.31,trades:1},
+  '2026-4-13':{pnl:0.84,trades:1},'2026-4-14':{pnl:9.47,trades:1},'2026-4-18':{pnl:0.85,trades:2},
+  '2026-4-19':{pnl:0.38,trades:5},'2026-4-20':{pnl:2.02,trades:1},'2026-4-21':{pnl:5.74,trades:1},
+  '2026-4-22':{pnl:1.84,trades:2},'2026-4-23':{pnl:0.18,trades:2},'2026-4-25':{pnl:0.08,trades:1},
+  '2026-4-27':{pnl:5.52,trades:1},'2026-4-29':{pnl:-32.48,trades:1},'2026-4-30':{pnl:0.03,trades:2},
+};
+
+// ══════════════════════════════════════════
+//  PNL BARS
+// ══════════════════════════════════════════
+function renderBars(){
+  const container=document.getElementById('pnl-bars');
+  const data=Array.from({length:30},()=>(Math.random()-.28)*25);
+  const max=Math.max(...data.map(Math.abs));
+  container.innerHTML=data.map(v=>{
+    const h=Math.max(3,Math.abs(v)/max*150);
+    return `<div class="bar ${v>=0?'pos':'neg'}" style="height:${h}px" title="${v>=0?'+':''}$${v.toFixed(2)}"></div>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════
+//  DRAWDOWN
+// ══════════════════════════════════════════
+function renderDD(){
+  const dd=[0,-0.5,-1.2,-0.3,-2.5,-1.1,-3.8,-2.2,-1.6,-5.0,-8.24,-5.5,-3.2,-1.5,0];
+  const W=800,H=160,pad=12;
+  const min=Math.min(...dd)*1.1, max=2;
+  const pts=dd.map((v,i)=>({
+    x:pad+i*(W-2*pad)/(dd.length-1),
+    y:pad+(max-v)/(max-min)*(H-2*pad)
+  }));
+  const line=pts.map((p,i)=>(i===0?'M':'L')+p.x.toFixed(1)+','+p.y.toFixed(1)).join(' ');
+  document.getElementById('dd-line').setAttribute('d',line);
+  document.getElementById('dd-area').setAttribute('d',line+` L${pts[pts.length-1].x},${H} L${pts[0].x},${H} Z`);
+  setText('dd-max','-8.24%','r');
+  setText('dd-cur','0.00%');
+  setText('dd-peak','—','b');
+  setText('dd-rec','—','go');
+}
+
+// ══════════════════════════════════════════
+//  REFRESH ALL
+// ══════════════════════════════════════════
+async function refreshAll(){
+  const ico=document.getElementById('ref-ico');
+  ico.style.animation='spin .5s linear infinite';
+  const tasks=[];
+  if(S.hl.addr) tasks.push(loadHL());
+  if(S.lt.idx) tasks.push(loadLighter());
+  if(S.at.key&&S.at.secret) tasks.push(loadAster());
+  if(!tasks.length){ toast('Configura al menos un exchange primero','info'); }
+  else await Promise.allSettled(tasks);
+  ico.style.animation='';
+}
+
+// ══════════════════════════════════════════
+//  TF BUTTON
+// ══════════════════════════════════════════
+function setTF(btn){
+  btn.closest('.tfs').querySelectorAll('.tf').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+}
+
+// ══════════════════════════════════════════
+//  UI HELPERS
+// ══════════════════════════════════════════
+function showOv(title,msg){
+  document.getElementById('ov-title').textContent=title;
+  document.getElementById('ov-msg').textContent=msg;
+  document.getElementById('ov').classList.add('on');
+}
+function hideOv(){ document.getElementById('ov').classList.remove('on'); }
+let toastT;
+function toast(msg,type='info'){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.className='toast on '+type;
+  clearTimeout(toastT);
+  toastT=setTimeout(()=>t.classList.remove('on'),4000);
+}
+
+// ══════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════
+renderCal();
+renderBars();
+renderDD();
+</script>
+</body>
+</html>
